@@ -16,8 +16,7 @@ class MSR:
     def __init__(self, tasknumber):
         self.taskOrder = tasknumber
 
-    def readAllDocx(self,datafromexcel):
-        path = r"C:\Users\vgollapudi\Desktop\MSR\all"
+    def readAllDocx(self,datafromexcel, docxFolder):
         outputDoc = Document()
 
         def iter_block_items(parent):
@@ -39,7 +38,7 @@ class MSR:
             """
             Write the run to the new file and then set its font, bold, alignment, color etc. data.
             """
-
+            output_doc_name.styles['List Bullet'].next_paragraph_style = output_doc_name.styles['Body Text']
             output_para = output_doc_name.add_paragraph()
             for run in paragraph.runs:
                 s=run.text
@@ -57,7 +56,7 @@ class MSR:
                 output_para.style = paragraph.style
 
         for fileName in datafromexcel.keys():
-            filePath = os.path.join(path, fileName + ".docx")
+            filePath = os.path.join(docxFolder, fileName + ".docx")
             exists = os.path.isfile(filePath)
             if exists:
                 input_doc = Document(filePath)
@@ -76,14 +75,14 @@ class MSR:
                             t = outputDoc.add_table(timesheetExcel.shape[0] + 1, timesheetExcel.shape[1])
                             t.style = 'Table Grid'
                             for j in range(timesheetExcel.shape[-1]):
-                                shading_elm_1 = parse_xml(r'<w:shd {} w:fill="1F5C8B"/>'.format(nsdecls('w')))
+                                shading_elm_1 = parse_xml(r'<w:shd {} w:fill="17365D"/>'.format(nsdecls('w')))
                                 t.cell(0, j).text = timesheetExcel.columns[j]
                                 t.cell(0, j)._tc.get_or_add_tcPr().append(shading_elm_1)
                             for i in range(timesheetExcel.shape[0]):
                                 for j in range(timesheetExcel.shape[-1]):
                                     t.cell(i + 1, j).text = str(timesheetExcel.values[i, j])
                                     if j == 0:
-                                        shading_elm_1 = parse_xml(r'<w:shd {} w:fill="dAEAF7"/>'.format(nsdecls('w')))
+                                        shading_elm_1 = parse_xml(r'<w:shd {} w:fill="BFBFBF"/>'.format(nsdecls('w')))
                                         t.cell(i + 1, j)._tc.get_or_add_tcPr().append(shading_elm_1)
                                         t.cell(i + 1, j).width = Inches(2)
 
@@ -98,8 +97,7 @@ class MSR:
 
         outputDoc.save(r'C:\Users\vgollapudi\Desktop\MSR\out\out.docx')
 
-    def readExcel(self):
-        path = r"C:\Users\vgollapudi\Desktop\MSR\TO1 and TO6.xlsx"
+    def readExcel(self,path):
         # print(path)
         df = pd.read_excel(path, sheet_name='Invoice Detail '+self.taskOrder)
         individual_project = {}
@@ -110,7 +108,6 @@ class MSR:
                 final.columns = list(df.iloc[x, :])
                 break
         counter = 0
-        #
         for x in range(0, final.shape[0]):
             if final.iloc[x, 3] == "Total":
                 individual_project[final.iloc[x, 0]] = final.iloc[counter:x, :].dropna()
@@ -119,6 +116,8 @@ class MSR:
 
 if __name__ == '__main__':
     msr = MSR("TO6")
-    data_from_excel = msr.readExcel()
-    print(data_from_excel.keys())
-    msr.readAllDocx(data_from_excel)
+    excelPath = r"C:\Users\vgollapudi\Desktop\MSR\TO1 and TO6.xlsx"
+    docxPath = r"C:\Users\vgollapudi\Desktop\MSR\all"
+
+    data_from_excel = msr.readExcel(excelPath)
+    msr.readAllDocx(data_from_excel,docxPath)
